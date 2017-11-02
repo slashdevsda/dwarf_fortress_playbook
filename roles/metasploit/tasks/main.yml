@@ -1,0 +1,67 @@
+---
+# tasks file for metasploit
+
+- name: Install "curl"
+  apt:
+    name: curl
+    state: present
+
+
+- name: Creates /usr/local/installers directory
+  file: path=/usr/local/installers state=directory
+
+
+- name: Download metasploit installer
+  get_url: >
+    url=https://raw.githubusercontent.com/rapid7/metasploit-omnibus/master/config/templates/metasploit-framework-wrappers/msfupdate.erb
+    dest=/usr/local/installers/msfinstall
+
+- command: which msfconsole
+  register: msf_installed
+  ignore_errors: True
+
+- name: Install "metasploit"
+  shell: |
+    chmod 755 /usr/local/installers/msfinstall && \
+    /usr/local/installers/msfinstall
+  when: msf_installed|failed
+
+- name: Install "sudo"
+  apt:
+    name: sudo
+    state: present
+
+- name: Install "Postgresql" for persistence
+  apt: name={{item}}
+  with_items:
+    - postgresql
+    - libpq-dev
+    - python-psycopg2
+
+- name: configure metasploit for postgresql
+  template:
+    src: database.yml
+    dest: /opt/metasploit-framework/embedded/framework/config/database.yml
+    owner: root
+    group: root
+    mode: 0644
+
+- name: configure postgresql for metasploit (database )
+  postgresql_db: name={{pgsql_database}}
+  become: yes
+  become_user: postgres
+
+- name: ensure user has access to database
+  postgresql_user: db={{pgsql_database}} name={{pgsql_user}} password={{pgsql_password}} priv=ALL
+  become: yes
+  become_user: postgres
+
+- name: ensure user does not have unnecessary privilege
+  postgresql_user: name={{pgsql_user}} role_attr_flags=NOSUPERUSER,NOCREATEDB
+  become: yes
+  become_user: postgres
+
+- name: ensure no other user can access the database
+  postgresql_privs: db={{pgsql_database}} role=PUBLIC type=database priv=ALL state=absent
+  become: yes
+  become_user: postgres
