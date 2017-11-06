@@ -1,5 +1,0 @@
----
-# vars file for metasploit
-pgsql_user: msf
-pgsql_password: 3xeed_2wf000_msf
-pgsql_database: msf
