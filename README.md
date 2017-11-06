@@ -18,7 +18,7 @@ _[Ansible](http://docs.ansible.com) related._
 
 ```bash
 echo '[df]
-192.168.X.X
+192.168.X.X' > hosts
 ```
 
 ### Play this playbook
