@@ -1,0 +1,15 @@
+- hosts: df
+  vars:
+    http_port: 80
+    max_clients: 200
+
+  remote_user: root
+  tasks:
+    - name: Install "htop"
+      apt:
+        name: htop
+        state: present
+
+
+  roles:
+    - dwarf_fortress
