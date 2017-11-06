@@ -1,0 +1,87 @@
+---
+# tasks file for dwarf_fortress
+- name: "apt-get update"
+  apt:
+    update_cache: yes
+
+- name: Install "lazy newb pack" dependencies
+  apt: name={{item}}
+  update_cache: yes
+  with_items:
+    - default-jre
+    - libsdl1.2debian
+    - libsdl-image1.2
+    - libsdl-ttf2.0-0
+    - libglu1-mesa
+    - libgtk2.0-0
+    - libopenal1
+    - libjpeg62
+    - wget
+    - coreutils
+    - tar
+    - xterm
+    - sed
+    - python
+    - bzip2
+    - qtchooser
+    - libqt4-script
+    - libqt4-scripttools
+    - libqt5script5
+    - libqt5scripttools5
+    - libqxt-core0
+    - libqxt-gui0
+    - git
+    - curl
+
+
+- name: Creates /usr/local/src/lnp/
+  file: path=/usr/local/src/lnp/ state=directory
+
+#- name: download LNP
+#  shell: |
+#    curl "http://dffd.bay12games.com/download.php?id=12762&f=LinuxLNP-0.43.05-r06.tar.gz" > "/usr/local/src/lnp/LinuxLNP-0.43.05-r06.tar.gz"
+
+- name: download LNP
+  get_url: >
+   url={{lnp_tar_url}}
+   dest=/usr/local/src/lnp/LinuxLNP-0.43.05-r06.tar.gz
+   timeout=20
+
+- name: Creates /usr/local/src/lnp/{{lnp_release}}
+  file: path=/usr/local/src/lnp/{{lnp_release}} state=directory
+
+
+- command: ls /usr/local/src/lnp/{{lnp_release}}
+  register: df_unarchived
+  ignore_errors: True
+
+#- name: unarchive lnp
+#  shell: >-
+#    cd /usr/local/src/lnp && tar -xvzf LinuxLNP-0.43.05-r06.tar.gz
+
+- name: unarchive lnp
+  unarchive: |
+    remote_src=yes
+    src=/usr/local/src/lnp/{{lnp_release}}.tar.gz
+    dest=/usr/local/src/lnp/{{lnp_release}}
+
+
+- name: add pathes to path
+  lineinfile: >
+   dest=/etc/profile
+   state=present
+   line='export PATH="$PATH:{{item}}";'
+  with_items:
+    - /usr/local/src/lnp/{{lnp_release}}/{{lnp_release}}/
+
+#- name: add pathes to path
+  # lineinfile: >
+  #  dest=/home/*/.profile
+  #  state=present
+  #  line='export PATH="$PATH:{{item}}";'
+  # with_items:
+  #   - /usr/local/src/lnp/LinuxLNP-0.43.05-r06/LinuxLNP-0.43.05-r06/
+
+# - name: DL LNP
+#   shell: >
+#     wget http://dffd.bay12games.com/download.php?id=12762&f=LinuxLNP-0.43.05-r06.tar.gz && mv 'download.php?id=12762&f=LinuxLNP-0.43.05-r06.tar.gz' /usr/local/src/lnp/
