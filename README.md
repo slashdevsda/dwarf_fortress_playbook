@@ -2,6 +2,8 @@
 
 # Dwarf fortress playbook
 
+_note: This project is not maintained_
+
 ## Cloud fortress
 
 _[Ansible](http://docs.ansible.com) related._
